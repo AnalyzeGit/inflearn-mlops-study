@@ -19,12 +19,24 @@ from sklearn.pipeline import Pipeline
 
 
 class ml_manager:
-    def __init__(self) -> None:
+    def __init__(self, target_col: str) -> None:
         self.df = pd.read_csv(r'../data/train.csv')
+
+        self.X = self.df.drop(columns=[target_col])
+        self.y = self.df[target_col]
+
+        self.categorical_cols = self.X.select_dtypes(include=['object']).columns.tolist()
+        self.numeric_cols =  self.X.select_dtypes(include=[np.number]).columns.tolist()
+
+        self.preprocessor = ColumnTransformer(
+            transformers=[
+                ('num', StandardScaler(), self.numeric_cols),
+                ('cat', OneHotEncoder(drop='first', handle_unknown='ignore'), self.categorical_cols)
+            ]
+        )
 
     def _select_features_by_logistic_lasso(
             self,
-            target_col: str, 
             C: float = 1.0, 
             random_state: int = 42
             ) -> List[str]:
@@ -39,25 +51,12 @@ class ml_manager:
         Returns:
             selected_features (list): 선택된 변수명 리스트
         """
-        X = self.df.drop(columns=[target_col])
-        y = self.df[target_col]
-
-        categorical_cols = X.select_dtypes(include=['object']).columns.tolist()
-        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
-
-        preprocessor = ColumnTransformer(
-            transformers=[
-                ('num', StandardScaler(), numeric_cols),
-                ('cat', OneHotEncoder(drop='first', handle_unknown='ignore'), categorical_cols)
-            ]
-        )
-
         clf = Pipeline(steps=[
-            ('preprocessor', preprocessor),
+            ('preprocessor', self.preprocessor),
             ('classifier', LogisticRegression(penalty='l1', solver='liblinear', C=C, random_state=random_state))
         ])
 
-        clf.fit(X, y)
+        clf.fit(self.X, self.y)
         encoded_feature_names = clf.named_steps['preprocessor'].get_feature_names_out()
         coefs = clf.named_steps['classifier'].coef_[0]
         selected_features = [feature for coef, feature in zip(coefs, encoded_feature_names) if coef != 0]
@@ -66,7 +65,6 @@ class ml_manager:
 
     def predict_with_selected_features(
             self, 
-            target_col: str, 
             test_size: float = 0.2, 
             random_state: int = 42
             ) -> Tuple[np.ndarray, LogisticRegression]:
@@ -83,28 +81,15 @@ class ml_manager:
             clf (LogisticRegression): 학습된 모델
             
         """
-        selected_features = self._select_features_by_logistic_lasso(target_col)
+        selected_features = self._select_features_by_logistic_lasso()
 
-        X = self.df.drop(columns=[target_col])
-        y = self.df[target_col]
-
-        categorical_cols = X.select_dtypes(include=['object']).columns.tolist()
-        numeric_cols = X.select_dtypes(include=[np.number]).columns.tolist()
-
-        preprocessor = ColumnTransformer(
-            transformers=[
-                ('num', StandardScaler(), numeric_cols),
-                ('cat', OneHotEncoder(drop='first', handle_unknown='ignore'), categorical_cols)
-            ]
-        )
-
-        X_processed = preprocessor.fit_transform(X)
-        all_feature_names = preprocessor.get_feature_names_out()
+        X_processed = self.preprocessor.fit_transform(self.X)
+        all_feature_names = self.preprocessor.get_feature_names_out()
         
         selected_idx = [i for i, name in enumerate(all_feature_names) if name in selected_features]
         X_selected = X_processed[:, selected_idx]
 
-        X_train, X_test, y_train, y_test = train_test_split(X_selected, y, test_size=test_size, random_state=random_state)
+        X_train, X_test, y_train, y_test = train_test_split(X_selected, self.y, test_size=test_size, random_state=random_state)
         clf = LogisticRegression(solver='liblinear')
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)

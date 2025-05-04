@@ -7,5 +7,5 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from ml.ml_pipeline import ml_manager  
 
-ml_instance = ml_manager()
-ml_instance.predict_with_selected_features('채무 불이행 여부')
+ml_instance = ml_manager('채무 불이행 여부')
+ml_instance.predict_with_selected_features()
