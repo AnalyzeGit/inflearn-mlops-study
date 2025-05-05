@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 from ml.ml_pipeline import MLManager  
 
 data_path = r'../data/train.csv'
-target_col = "채무 불이행"
+target_col = "채무 불이행 여부"
 
 ml_instance = MLManager(data_path, target_col)
 ml_instance.predict_with_selected_features()
