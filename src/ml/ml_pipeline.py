@@ -17,16 +17,14 @@ from sklearn.model_selection import train_test_split
 # [ml] pipeline
 from sklearn.pipeline import Pipeline
 
+# package
+from dataline.data_handler import DataHandler
 
-class ml_manager:
-    def __init__(self, target_col: str) -> None:
-        self.df = pd.read_csv(r'../data/train.csv')
-
-        self.X = self.df.drop(columns=[target_col])
-        self.y = self.df[target_col]
-
-        self.categorical_cols = self.X.select_dtypes(include=['object']).columns.tolist()
-        self.numeric_cols =  self.X.select_dtypes(include=[np.number]).columns.tolist()
+class MLManager:
+    def __init__(self, data_path: str, target_col: str) -> None:
+        date_hanlder = DataHandler(data_path)
+        self.X, self.y = date_hanlder.split_features_target(target_col)
+        self.categorical_cols, self.numeric_cols = date_hanlder.identify_categorical_numeric_columns(self.X)
 
         self.preprocessor = ColumnTransformer(
             transformers=[
