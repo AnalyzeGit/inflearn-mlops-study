@@ -1,14 +1,12 @@
-
-import sys
-import os
-
-# 현재 파일 위치 기준으로 src 폴더 경로를 sys.path에 추가
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
-
 from ml.ml_pipeline import MLManager  
+from mlops_config import DATA_DIR
 
-data_path = r'../data/train.csv'
-target_col = "채무 불이행 여부"
+if __name__=="__main__":
+    # 데이터 로드 
+    data_path = DATA_DIR / "train.csv"
+    # 타겟 값 설정정
+    target_col = "채무 불이행 여부"
 
-ml_instance = MLManager(data_path, target_col)
-ml_instance.predict_with_selected_features()
+    # 실행 객체 생성 
+    ml_instance = MLManager(data_path, target_col)
+    ml_instance.predict_with_selected_features()
