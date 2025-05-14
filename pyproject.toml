@@ -20,7 +20,9 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-url = "https://github.com/AnalyzeGit/inflearn-mlops-study.git"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[project.urls]
+homepage = "https://github.com/AnalyzeGit/inflearn-mlops-study.git"
+
+[tool.setuptools]
+packages = { find = { where = ["src"] } }
