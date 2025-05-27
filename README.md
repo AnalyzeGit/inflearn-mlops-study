@@ -11,11 +11,11 @@ This project is focused on Machine Learning pipelines and MLOps practices.
 
 2. Install dependencies:
     ```bash
-    pip install -r requirements.txt
+    pip install .
     ```
 
 ## Usage
 
 Run the main script to train the model:
 ```bash
-python scripts/main.py
+./setup.sh
